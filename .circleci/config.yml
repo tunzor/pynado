@@ -1,0 +1,34 @@
+
+version: 2
+jobs:
+  gather-dependencies-and-freeze:
+    machine:
+      image: circleci/classic:201808-01
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-{{ checksum "requirements.txt" }}
+      - run:
+          name: Switch to Python 3.7
+          command: |
+            pyenv versions
+            pyenv global 3.7.0
+      - run:
+          name: Install dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip && pip install -r requirements.txt
+            pip freeze
+      - save_cache:
+          key: v1-{{ checksum "requirements.txt" }}
+          paths:
+            - venv
+
+workflows:
+  version: 2
+  deps-and-freeze:
+    jobs:
+      - gather-dependencies-and-freeze
